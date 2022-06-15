@@ -11,7 +11,7 @@ import (
 )
 
 func GetConnection() *sql.DB {
-	db, err := sql.Open("mysql", "root:@tcp(localhost:3306)/test")
+	db, err := sql.Open("mysql", "root:@tcp(localhost:3306)/test?parseDate=true")
 	if err != nil {
 		panic(err)
 	}
@@ -58,6 +58,35 @@ func TestQuery(t *testing.T) {
 			panic(err)
 		}
 		fmt.Println(id, name)
+	}
+	defer rows.Close()
+}
+
+func TestSqlInjection(t *testing.T) {
+	db := GetConnection()
+	defer db.Close()
+
+	ctx := context.Background()
+
+	username := "admin"
+	password := "admin"
+
+	script := "SELECT username, password FROM customer WHERE username='" + username + "' AND password= '" + password + "' LIMIT 1 "
+	rows, err := db.QueryContext(ctx, script)
+
+	if err != nil {
+		panic(err)
+	}
+
+	if rows.Next() {
+		var username string
+		err := rows.Scan(&username)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println("Username: ", username)
+	} else {
+		fmt.Println("No user found")
 	}
 	defer rows.Close()
 }
