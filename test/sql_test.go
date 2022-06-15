@@ -174,3 +174,34 @@ func TestPrepareStatement(t *testing.T) {
 
 	}
 }
+
+func TestTransactionDb(t *testing.T) {
+	db := GetConnection()
+	defer db.Close()
+
+	ctx := context.Background()
+
+	tx, err := db.Begin()
+	if err != nil {
+		panic(err)
+	}
+
+	script := "INSERT INTO customer(email, password) VALUES(? , ?)"
+
+	for i := 0; i < 10; i++ {
+		email := "dyaksaa" + strconv.Itoa(i) + "@gmail.com"
+		password := "random"
+		result, err := db.ExecContext(ctx, script, email, password)
+		if err != nil {
+			panic(err)
+		}
+
+		lastId, err := result.LastInsertId()
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println("last id :", lastId)
+	}
+
+	tx.Commit()
+}
