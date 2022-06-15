@@ -1,8 +1,10 @@
-package databasego
+package databases
 
 import (
 	"database/sql"
 	"time"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 func GetConnection() *sql.DB {
