@@ -90,3 +90,54 @@ func TestSqlInjection(t *testing.T) {
 	}
 	defer rows.Close()
 }
+
+func TestSQLWithParameter(t *testing.T) {
+	db := GetConnection()
+	defer db.Close()
+
+	ctx := context.Background()
+
+	username := "admin"
+	password := "admin"
+
+	script := "SELECT username, password FROM customer WHERE username = ? AND password = ? LIMIT 1"
+
+	rows, err := db.QueryContext(ctx, script, username, password)
+	if err != nil {
+		panic(err)
+	}
+
+	if rows.Next() {
+		var username string
+		err := rows.Scan(&username)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println("Username: ", username)
+	} else {
+		fmt.Println("Data Not Found")
+	}
+
+	defer rows.Close()
+}
+
+func TestAutoIncrement(t *testing.T) {
+	db := GetConnection()
+	defer db.Close()
+
+	ctx := context.Background()
+
+	username := "eko"
+	password := "mas"
+
+	script := "INSERT INTO customer(username, password) VALUES(? ,?)"
+	result, err := db.ExecContext(ctx, script, username, password)
+	if err != nil {
+		panic(err)
+	}
+	lastId, err := result.LastInsertId()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Last Insert ID: ", lastId)
+}
